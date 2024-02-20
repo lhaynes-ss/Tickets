@@ -10,12 +10,12 @@ s3://samsung.ads.data.share/analytics/custom/Kuo_Data_Lab/alexa/registers/220601
 @demo_stage10000/220601_us_alexa_10per_control.csv
 s3://samsung.ads.data.share/analytics/custom/Kuo_Data_Lab/alexa/registers/220601_us_alexa_10per_control.csv
 
-@udw_prod.udw_marketing_analytics_reports.audience_planner_remote_files_udw_s/230912_us_alexa_register_last_45_230912to231231.csv
-s3://adgear-etl-audience-planner/remotefiles/udw/230912_us_alexa_register_last_45_230912to231231.csv
+@udw_prod.udw_marketing_analytics_reports.audience_planner_remote_files_udw_s/alexa_registered_last45_daily.csv
+s3://adgear-etl-audience-planner/remotefiles/udw/alexa_registered_last45_daily.csv
 
 
 AWS:
-aws --profile nyc s3 ls s3://adgear-etl-audience-planner/remotefiles/udw/230912_us_alexa_register_last_45_230912to231231.csv
+aws --profile nyc s3 ls s3://adgear-etl-audience-planner/remotefiles/udw/alexa_registered_last45_daily.csv
 
 
 CALL udw_prod.udw_clientsolutions_cs.sp_alexa_register_us_daily();
@@ -145,7 +145,7 @@ BEGIN
 
             
     -- save to file
-    COPY INTO @udw_prod.udw_marketing_analytics_reports.audience_planner_remote_files_udw_s/230912_us_alexa_register_last_45_230912to231231.csv FROM (SELECT DISTINCT psid FROM new_seg)
+    COPY INTO @udw_prod.udw_marketing_analytics_reports.audience_planner_remote_files_udw_s/alexa_registered_last45_daily.csv FROM (SELECT DISTINCT psid FROM new_seg)
     file_format = (format_name = adbiz_data.mycsvformat10000 compression = 'none')
     single = true
     header = true
