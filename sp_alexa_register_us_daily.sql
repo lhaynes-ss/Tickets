@@ -15,7 +15,7 @@ s3://adgear-etl-audience-planner/remotefiles/udw/230912_us_alexa_register_last_4
 
 
 AWS:
-aws --profile nyc s3 ls s3://adgear-etl-audience-planner/remotefiles/udw/2
+aws --profile nyc s3 ls s3://adgear-etl-audience-planner/remotefiles/udw/230912_us_alexa_register_last_45_230912to231231.csv
 
 
 CALL udw_prod.udw_clientsolutions_cs.sp_alexa_register_us_daily();
@@ -31,9 +31,6 @@ DECLARE
     yesterday_end VARCHAR;
     fourtyfive_ago VARCHAR;
 
-    yesterday_end_label VARCHAR;
-    fourtyfive_ago_label VARCHAR;
-
     message VARCHAR;
       
 BEGIN     
@@ -42,9 +39,6 @@ BEGIN
     yesterday_start := (SELECT CONCAT(TO_CHAR(DATEADD(DAY, -1, CURRENT_DATE()),'yyyymmdd'),'00'));
     yesterday_end := (SELECT CONCAT(TO_CHAR(DATEADD(DAY, -1, CURRENT_DATE()),'yyyymmdd'),'23'));
     fourtyfive_ago := (SELECT CONCAT(TO_CHAR(DATEADD(DAY, -45, CURRENT_DATE()),'yyyymmdd'),'00'));
-
-    yesterday_end_label := (SELECT LEFT(RIGHT(:yesterday_end, 8), 6));
-    fourtyfive_ago_label := (SELECT LEFT(RIGHT(:fourtyfive_ago, 8), 6));
 
     message := 'Process Completed';
 
@@ -151,16 +145,12 @@ BEGIN
 
             
     -- save to file
-    -- add space to beginning of new line
-    LET sql_stm := 'COPY INTO @udw_prod.udw_marketing_analytics_reports.audience_planner_remote_files_udw_s/' || fourtyfive_ago_label || '_us_alexa_register_last_45_' || fourtyfive_ago_label || 'to' || yesterday_end_label || '.csv FROM (SELECT DISTINCT psid FROM new_seg)'
-    || ' file_format = (format_name = adbiz_data.mycsvformat10000 compression = \'none\')'
-    || ' single=true'
-    || ' header = true'
-    || ' max_file_size=4900000000'
-    || ' OVERWRITE = TRUE';
-
-
-    EXECUTE IMMEDIATE sql_stm;
+    COPY INTO @udw_prod.udw_marketing_analytics_reports.audience_planner_remote_files_udw_s/230912_us_alexa_register_last_45_230912to231231.csv FROM (SELECT DISTINCT psid FROM new_seg)
+    file_format = (format_name = adbiz_data.mycsvformat10000 compression = 'none')
+    single = true
+    header = true
+    max_file_size = 4900000000
+    OVERWRITE = TRUE;
 
 
     RETURN message;
