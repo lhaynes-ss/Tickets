@@ -30,6 +30,7 @@ SHOW TASKS;
 -- Step 4
 -- enable task after creation
 ALTER TASK udw_prod.udw_clientsolutions_cs.task_alexa_register_us_monthly RESUME;
+-- ALTER TASK udw_prod.udw_clientsolutions_cs.task_alexa_register_us_monthly SUSPEND;
 
 
 
