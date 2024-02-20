@@ -11,7 +11,7 @@ New Location:
 s3://adgear-etl-audience-planner/remotefiles/alexa_registered_20211212_20230611_1074224.csv
 
 AWS:
-aws --profile nyc s3 ls s3://adgear-etl-audience-planner/remotefiles/alexa_registered_
+aws --profile nyc s3 ls s3://adgear-etl-audience-planner/remotefiles/alexa_registered_20211212_20230611_1074224.csv
 
 
 CALL udw_prod.udw_clientsolutions_cs.sp_alexa_register_us_monthly();
@@ -25,7 +25,7 @@ AS $$
 DECLARE 
 	data_retention VARCHAR;
 	yesterday VARCHAR;
-    reg_count VARCHAR;
+    -- reg_count VARCHAR;
     message VARCHAR;
 
 BEGIN 
@@ -54,23 +54,18 @@ BEGIN
 			AND payload:exe_goal::STRING = 'LOGIN_ACTIVATETV'
 	);
 
-	reg_count := (SELECT COUNT(DISTINCT psid)::VARCHAR FROM alexa_reg); --1,074,224
+	-- reg_count := (SELECT COUNT(DISTINCT psid)::VARCHAR FROM alexa_reg); --1,074,224
 
 
 
-	-- save to file; path is dynamically generated
-    -- add space to beginning of new line
-    -- Copy to s3://adgear-etl-audience-planner/remotefiles/alexa_registered_20211212_20230611_1074224.csv
-	LET sql_stm := 'COPY INTO \'s3://adgear-etl-audience-planner/remotefiles/alexa_registered_' || data_retention || '_' || yesterday || '_' || reg_count || '.csv\' FROM alexa_reg'
-	|| ' storage_integration = data_analytics_share'
-	|| ' file_format = (format_name = adbiz_data.analytics_csv COMPRESSION = \'none\')'
-	|| ' single = TRUE'
-	|| ' header = TRUE'
-	|| ' overwrite = TRUE'
-	|| ' max_file_size = 5368709120'; 
-
-
-    EXECUTE IMMEDIATE sql_stm;
+	-- save to file
+	COPY INTO 's3://adgear-etl-audience-planner/remotefiles/alexa_registered_20211212_20230611_1074224.csv' FROM alexa_reg
+	storage_integration = data_analytics_share
+	file_format = (format_name = adbiz_data.analytics_csv COMPRESSION = 'none')
+	single = TRUE
+	header = TRUE
+	overwrite = TRUE
+	max_file_size = 5368709120; 
 
     RETURN message;
 
