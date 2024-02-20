@@ -13,11 +13,11 @@
 
 -- Step 2.
 -- Every day at 8 AM UTC (3 AM EST)
-CREATE OR REPLACE TASK udw_prod.udw_clientsolutions_cs.task_alexa_register_us
+CREATE OR REPLACE TASK udw_prod.udw_clientsolutions_cs.task_alexa_register_us_daily
   WAREHOUSE = 'UDW_CLIENTSOLUTIONS_DEFAULT_WH_PROD'
   SCHEDULE = 'USING CRON  0 8 * * * UTC'
 AS 
-  CALL udw_prod.udw_clientsolutions_cs.sp_alexa_register_us();
+  CALL udw_prod.udw_clientsolutions_cs.sp_alexa_register_us_daily();
 
 
 
@@ -29,7 +29,7 @@ SHOW TASKS;
 
 -- Step 4
 -- enable task after creation
-ALTER TASK udw_prod.udw_clientsolutions_cs.task_alexa_register_us RESUME;
+ALTER TASK udw_prod.udw_clientsolutions_cs.task_alexa_register_us_daily RESUME;
 
 
 
