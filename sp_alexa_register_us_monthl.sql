@@ -8,10 +8,10 @@ Old location:
 s3://samsung.ads.data.share/analytics/custom/DJ_Data_Lab/Alexa/alexa_registered_20211212_20230611_1074224.csv
 
 New Location:
-s3://adgear-etl-audience-planner/remotefiles/alexa_registered_20211212_20230611_1074224.csv
+s3://adgear-etl-audience-planner/remotefiles/udw/alexa_registered_monthly.csv
 
 AWS:
-aws --profile nyc s3 ls s3://adgear-etl-audience-planner/remotefiles/alexa_registered_20211212_20230611_1074224.csv
+aws --profile nyc s3 ls s3://adgear-etl-audience-planner/remotefiles/udw/alexa_registered_monthly.csv
 
 
 CALL udw_prod.udw_clientsolutions_cs.sp_alexa_register_us_monthly();
@@ -59,7 +59,7 @@ BEGIN
 
 
 	-- save to file
-	COPY INTO 's3://adgear-etl-audience-planner/remotefiles/alexa_registered_20211212_20230611_1074224.csv' FROM alexa_reg
+	COPY INTO 's3://adgear-etl-audience-planner/remotefiles/udw/alexa_registered_monthly.csv' FROM alexa_reg
 	storage_integration = data_analytics_share
 	file_format = (format_name = adbiz_data.analytics_csv COMPRESSION = 'none')
 	single = TRUE
