@@ -34,9 +34,12 @@ Data Schemas:
  Ticket:
     https://adgear.atlassian.net/browse/SAI-6738
 
+ Original query:
+    https://github.com/SamsungAdsAnalytics/QueryBase/blob/master/UDW/MnE/Content_Partner/Hulu/US_UDW/New_Attribution_Report_Template/202407_hulu_liveramp/hulu_liveramp_6441.sql
+
 
  Instructions:
- -- Follow setup steps 1 and 2 below.
+ -- Follow setup steps 1 - 3 below.
  - Update vao_list variable to include 1 or more vaos from the JIRA ticket (e.g. '126354, 938726')
  - Update the stage file path in temp table "liveramp_subscribers_s3" with the path from the ticket (e.g., 
         CONVERT: s3://samsung-dm-data-share-analytics/export/20240508/psid/321480.csv
@@ -56,7 +59,7 @@ Data Schemas:
 **************************************************/
 
 
-SELECT 'STARTING QUERY. Remember to update variables AND complete set-up steps below or next tab will be empty!!!';
+SELECT 'STARTING QUERY. Remember to complete set-up steps below or next tab and report will be empty!!!' AS message;
 
 
 -- SETUP
@@ -83,6 +86,16 @@ Run script below:
 
     LIST @udw_prod.udw_clientsolutions_cs.samsung_ads_data_share/analytics/custom/vaughn/hulu/SAI6738/20241007/321480.csv
 
+---------------------------------
+STEP 3. CHECK VARIABLES BELOW (OPTIONAL)
+---------------------------------
+If you have mmore than one VAO, change variable to a list:
+    '187896' => '187896, 12345, 67890'
+
+If you need to override the default campaign start and end date then change NULL to dates:
+    NULL => '2024-01-01'
+
+Otherwise there is no need to update the variables if you performed step 1 above.
 **/
   
 
@@ -124,8 +137,8 @@ SET (
     override_report_start_date
     ,override_report_end_date
 ) = (
-    NULL        --> override_report_start_date
-    ,NULL       --> override_report_end_date
+    NULL        --> override_report_start_date; format 'YYYY-MM-DD' OR NULL
+    ,NULL       --> override_report_end_date; format 'YYYY-MM-DD' OR NULL
 );
 
 -- ===================================================
@@ -338,6 +351,9 @@ CREATE TEMP TABLE campaign_meta AS (
         JOIN cmpgn_flight_creative USING (sales_order_id)
         JOIN creative USING (sales_order_id)
         JOIN lineItem USING (sales_order_id, sales_order_line_item_id)
+     WHERE 
+        1 = 1
+        -- AND creative.creative_name LIKE '%OMITB%'    --> uncomment this line to filter report to specific creatives (e.g., contains 'OMITB' in name)
 );
 
 SELECT * FROM campaign_meta LIMIT 1000;
@@ -354,7 +370,7 @@ SET campaign_start = (
             CASE 
                 WHEN $override_report_start_date IS NULL 
                 THEN MIN(cmpgn_start_datetime_utc) 
-                ELSE CAST($override_report_start_date AS DATE) 
+                ELSE CAST($override_report_start_date  || ' 00:00:00' AS DATE) 
             END
         )::TIMESTAMP
     FROM campaign_meta
@@ -372,7 +388,7 @@ SET campaign_end = (
             CASE 
                 WHEN $override_report_end_date IS NULL 
                 THEN MAX(cmpgn_end_datetime_utc) 
-                ELSE CAST($override_report_end_date AS DATE) 
+                ELSE CAST($override_report_end_date || ' 23:59:59' AS DATE) 
             END
         )::TIMESTAMP
     FROM campaign_meta
