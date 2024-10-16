@@ -1,7 +1,7 @@
 /**
  Pull reporting and dump to s3 buckets for all regions
 
- TODO: log table
+ TODO: Swap xdevice with log table
 **/
 
 -- connection settings
@@ -113,15 +113,15 @@ BEGIN
             -- =============================================================================
             -- =============================================================================
             /**
-                To extract and run REPORT separately as a stand-alone query, do the following steps:
-
+                To extract and run this REPORT separately as a stand-alone query in dbvis, do the following steps:
+                --------------------------------------------------------------------------------------------------
                 1. Extract query betweem START REPORT and END REPORT
-                2. Regex find and replace where the x's in the "replace" value are $ signs:
-                    Rind:       "([^:])(:)([a-zA-Z])" 
+                2. Regex find and replace. Swap the x's in the "replace" value with $ signs:
+                    Find:       "([^:])(:)([a-zA-Z])" 
                     Replace:    "x1xxx3" 
-                3. Add header below to the top of the file.
-                4. Add this select to the bottom of the file: SELECT * FROM output_table;
-                5. Remove the "mapping check" block
+                3. Add header below to the top of the extracted query.
+                4. Add this select to the bottom of the file: "SELECT * FROM output_table";
+                5. Remove the "mapping check" block below
 
                 -- start header
                 USE ROLE UDW_CLIENTSOLUTIONS_DEFAULT_CONSUMER_ROLE_PROD;
