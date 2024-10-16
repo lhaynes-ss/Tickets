@@ -52,7 +52,7 @@ DECLARE
     page_visit_lookback_datetime            TIMESTAMP;  --> lookback window for page visits
     report_end_datetime_with_attribution    TIMESTAMP;  --> end of reporting window + attribution window
     current_date                            TIMESTAMP;  --> today
-    mapping_days_since_last_update          INT;        --> date diff between last time mapping was updated and report date
+    days_since_last_mapping_update          INT;        --> date diff between last time mapping was updated and report date
     STALE_MAP_EXCEPTION                     EXCEPTION;  --> will be thrown if mapping file is out of date
     foo                                     VARCHAR;    --> test variable. RETURN foo if needed with value to check
 BEGIN
@@ -180,12 +180,12 @@ BEGIN
 
             -- start mapping check
             -- check to see how many days ago the mapping file was updated
-            LET mapping_days_since_last_update    := 0;
-            mapping_days_since_last_update        := (SELECT DATEDIFF('DAY', MAX(m.last_update_ts), :current_date) FROM mapping_data m);
+            LET days_since_last_mapping_update    := 0;
+            days_since_last_mapping_update        := (SELECT DATEDIFF('DAY', MAX(m.last_update_ts), :current_date) FROM mapping_data m);
 
             -- if map was last updated 7 or more days ago then throw an exception to fail the query. 
             -- This keeps the report from auto-delivering stale info. Map is stale
-            IF (:mapping_days_since_last_update >= 7) THEN 
+            IF (:days_since_last_mapping_update >= 7) THEN 
                 RAISE STALE_MAP_EXCEPTION;
             END IF;
             -- end mapping check
