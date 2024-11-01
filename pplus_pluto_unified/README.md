@@ -17,7 +17,8 @@ For example, you may see "$_update.sql", instead of both "paramount_update.sql" 
 
 |File|Trigger|Purpose|Description|
 |--|--|--|--|
-|config.ini|N/A|Generate Mapping|Stores DB credentials. Should not be committed to github|
+|config.ini|N/A|DB Connections|Stores DB credentials. Should not be committed to github|
+|config_template.ini|N/A|DB Connections|config.ini template. Can be committed to github|
 |custom_global_exposures.py|N/A|Generate Mapping| Reusable python module to update the CDW exposures data based on input parameters|
 |$_report_exposures.py|Local Task|Generate Mapping| Uses partner specific arguments to trigger update of operatvie one table and pass values to custom_global_exposures.py to pull data for regions EU, APAC, and SA|
 |sp_update_custom_operative_sales_orders.sql|$_report_exposures.py|Generate Mapping|Reusable stored procedure to update partner operatvie one table based on parameters|
@@ -38,20 +39,20 @@ For example, you may see "$_update.sql", instead of both "paramount_update.sql" 
 ### Paramount +
 ```sql
 -- preview mapping table
-SELECT * FROM udw_prod.udw_clientsolutions_cs.paramount_custom_creative_mapping LIMIT 1000;
+SELECT * FROM udw_clientsolutions_cs.paramount_custom_creative_mapping LIMIT 1000;
 
 -- preview operative one sales order table
-SELECT * FROM udw_prod.udw_clientsolutions_cs.paramount_operative_sales_orders LIMIT 1000;
+SELECT * FROM udw_clientsolutions_cs.paramount_operative_sales_orders LIMIT 1000;
 
 -- preview CDW exposure table
-SELECT COUNT(*) FROM udw_prod.udw_clientsolutions_cs.paramount_custom_global_exposure;
+SELECT COUNT(*) FROM udw_clientsolutions_cs.paramount_custom_global_exposure;
 
 -- Example: select relevant mapping records for a specific time frame
 SELECT * 
-FROM udw_prod.udw_clientsolutions_cs.paramount_custom_creative_mapping
+FROM udw_clientsolutions_cs.paramount_custom_creative_mapping
 WHERE 
-    line_item_start_ts <= '2024-08-25 23:59:59'
-    AND line_item_end_ts >= '2024-08-19 00:00:00'
+    line_item_start_ts <= '2024-08-25 23:59:59'::TIMESTAMP
+    AND line_item_end_ts >= '2024-08-19 00:00:00'::TIMESTAMP
 ;
 
 ```
@@ -59,20 +60,20 @@ WHERE
 ### Pluto
 ```sql
 -- preview mapping table
-SELECT * FROM udw_prod.udw_clientsolutions_cs.pluto_custom_creative_mapping LIMIT 1000;
+SELECT * FROM udw_clientsolutions_cs.pluto_custom_creative_mapping LIMIT 1000;
 
 -- preview operative one sales order table
-SELECT * FROM udw_prod.udw_clientsolutions_cs.pluto_operative_sales_orders LIMIT 1000;
+SELECT * FROM udw_clientsolutions_cs.pluto_operative_sales_orders LIMIT 1000;
 
 -- preview CDW exposure table
-SELECT COUNT(*) FROM udw_prod.udw_clientsolutions_cs.pluto_custom_global_exposure;
+SELECT COUNT(*) FROM udw_clientsolutions_cs.pluto_custom_global_exposure;
 
 -- Example: select relevant mapping records for a specific time frame
 SELECT * 
-FROM udw_prod.udw_clientsolutions_cs.pluto_custom_creative_mapping
+FROM udw_clientsolutions_cs.pluto_custom_creative_mapping
 WHERE 
-    line_item_start_ts <= '2024-08-25 23:59:59'
-    AND line_item_end_ts >= '2024-08-19 00:00:00'
+    line_item_start_ts <= '2024-08-25 23:59:59'::TIMESTAMP
+    AND line_item_end_ts >= '2024-08-19 00:00:00'::TIMESTAMP
 ;
 ```
 
