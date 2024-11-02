@@ -57,11 +57,17 @@ DECLARE
     days_since_last_mapping_update          INT;        --> date diff between last time mapping was updated and report date
     STALE_MAP_EXCEPTION                     EXCEPTION;  --> will be thrown if mapping file is out of date
     foo                                     VARCHAR;    --> test variable. RETURN foo if needed with value to check
+    log                                     ARRAY;      --> array to store log messages for debugging
+    log_message                             VARCHAR;    --> message to add to the log array. For debugging.
 BEGIN
 
 
     -- get current date
     current_date := CURRENT_DATE();
+
+    -- init logging 
+    log := ARRAY_CONSTRUCT();
+    log_message := '';
 
     -- use date arguments if available or the defaults:
     -- Mon - Sun, Two weeks ago
@@ -107,6 +113,10 @@ BEGIN
 
             -- get the country field in the country variable in lowercase
             country := TRIM(LOWER(record.country));
+
+            -- log message (e.g., Country us started.)
+            log_message := 'Country ' || :country || ' started.';
+            log := (SELECT ARRAY_APPEND(:log, :log_message));
 
 
             -- =============================================================================
@@ -1046,6 +1056,10 @@ BEGIN
 
                 EXECUTE IMMEDIATE stmt;
 
+                -- log message (e.g., Country us completed.)
+                log_message := 'Country ' || :country || ' completed.';
+                log := (SELECT ARRAY_APPEND(:log, :log_message));
+
             END FOR;
 
 
@@ -1059,12 +1073,14 @@ BEGIN
 -- handle exception
 EXCEPTION
     WHEN OTHER THEN
+        -- Procedure xyz for partner failed. Error: (0, error message) || LOG: (message 1 => message 2 => message 3)
         SELECT udw_clientsolutions_cs.udf_submit_slack_notification_simple(
             slack_webhook_url => 'https://hooks.slack.com/triggers/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'
             ,date_string => :current_date::VARCHAR
             ,name_string => 'Snowflake Task Monitor'
             ,message_string => 'Procedure "udw_clientsolutions_cs.sp_partner_get_cdw_weekly_reports" for ' || 
-                :partner || ' failed.' || ' Error: (' || :SQLCODE || ', ' || :SQLERRM || ')'
+                :partner || ' failed.' || ' Error: (' || :SQLCODE || ', ' || :SQLERRM || ')' ||
+                ' || LOG: (' || ARRAY_TO_STRING(:log, ' => ') || ')'
         );
 
         RETURN 'FAILED WITH ERROR(' || :SQLCODE || ', ' || :SQLERRM || ')';

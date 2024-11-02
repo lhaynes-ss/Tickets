@@ -1,4 +1,11 @@
+/**
+https://www.utctime.net/utc-to-cst-converter
+https://crontab.guru/#0_2_*_*_1
+**/
 
+--===============================
+-- PARAMOUNT+ MAP 
+--===============================
 -- connection settings
 USE ROLE UDW_CLIENTSOLUTIONS_DEFAULT_CONSUMER_ROLE_PROD;
 USE WAREHOUSE UDW_CLIENTSOLUTIONS_DEFAULT_WH_PROD_MEDIUM;
@@ -9,7 +16,7 @@ USE SCHEMA PUBLIC;
 -- create paramount map task
 -- Every Monday at 2 AM UTC
 CREATE OR REPLACE TASK udw_clientsolutions_cs.tsk_update_paramount_creative_mapping
-  WAREHOUSE = 'UDW_CLIENTSOLUTIONS_DEFAULT_WH_PROD'
+  WAREHOUSE = 'UDW_CLIENTSOLUTIONS_DEFAULT_WH_PROD_MEDIUM'
   SCHEDULE = 'USING CRON  0 2 * * 1 UTC'
 AS 
   CALL udw_clientsolutions_cs.sp_update_custom_creative_mapping(
@@ -43,6 +50,9 @@ SELECT *
 -- ==============================================================================
 
 
+--===============================
+-- PLUTO MAP 
+--===============================
 -- connection settings
 USE ROLE UDW_CLIENTSOLUTIONS_DEFAULT_CONSUMER_ROLE_PROD;
 USE WAREHOUSE UDW_CLIENTSOLUTIONS_DEFAULT_WH_PROD_MEDIUM;
@@ -53,7 +63,7 @@ USE SCHEMA PUBLIC;
 -- create pluto map task
 -- Every Monday at 2 AM UTC
 CREATE OR REPLACE TASK udw_clientsolutions_cs.tsk_update_pluto_creative_mapping
-  WAREHOUSE = 'UDW_CLIENTSOLUTIONS_DEFAULT_WH_PROD'
+  WAREHOUSE = 'UDW_CLIENTSOLUTIONS_DEFAULT_WH_PROD_MEDIUM'
   SCHEDULE = 'USING CRON  0 2 * * 1 UTC'
 AS 
   CALL udw_clientsolutions_cs.sp_update_custom_creative_mapping(
@@ -81,5 +91,90 @@ SELECT *
   FROM TABLE(INFORMATION_SCHEMA.TASK_HISTORY())
   ORDER BY SCHEDULED_TIME;
 **/
+
+
+-- ==============================================================================
+-- ==============================================================================
+
+
+--===============================
+-- PARAMOUNT+ REPORT
+--===============================
+-- connection settings
+USE ROLE UDW_CLIENTSOLUTIONS_DEFAULT_CONSUMER_ROLE_PROD;
+USE WAREHOUSE UDW_CLIENTSOLUTIONS_DEFAULT_WH_PROD_MEDIUM;
+USE DATABASE UDW_PROD;
+USE SCHEMA PUBLIC;
+
+
+-- send reports
+-- Every Monday at 1 AM UTC / 7 AM CST
+CREATE OR REPLACE TASK udw_clientsolutions_cs.tsk_paramount_get_weekly_reports
+  WAREHOUSE = 'UDW_CLIENTSOLUTIONS_DEFAULT_WH_PROD_MEDIUM'
+  SCHEDULE = 'USING CRON  0 13 * * 1 UTC'
+AS 
+  CALL udw_clientsolutions_cs.sp_paramount_get_weekly_reports();
+
+/**
+-- start or restart task
+ALTER TASK udw_clientsolutions_cs.tsk_paramount_get_weekly_reports RESUME;
+
+-- stop task
+ALTER TASK udw_clientsolutions_cs.tsk_paramount_get_weekly_reports SUSPEND;
+
+-- show tasks
+SHOW TASKS;
+
+-- manually execute task
+EXECUTE TASK udw_clientsolutions_cs.tsk_paramount_get_weekly_reports;
+
+-- check status
+SELECT *
+  FROM TABLE(INFORMATION_SCHEMA.TASK_HISTORY())
+  ORDER BY SCHEDULED_TIME;
+**/
+
+
+-- ==============================================================================
+-- ==============================================================================
+
+
+--===============================
+-- PLUTO REPORT
+--===============================
+-- connection settings
+USE ROLE UDW_CLIENTSOLUTIONS_DEFAULT_CONSUMER_ROLE_PROD;
+USE WAREHOUSE UDW_CLIENTSOLUTIONS_DEFAULT_WH_PROD_MEDIUM;
+USE DATABASE UDW_PROD;
+USE SCHEMA PUBLIC;
+
+
+-- send reports
+-- Every Monday at 1 AM UTC / 7 AM CST
+CREATE OR REPLACE TASK udw_clientsolutions_cs.tsk_pluto_get_weekly_reports
+  WAREHOUSE = 'UDW_CLIENTSOLUTIONS_DEFAULT_WH_PROD_MEDIUM'
+  SCHEDULE = 'USING CRON  0 13 * * 1 UTC'
+AS 
+  CALL udw_clientsolutions_cs.sp_pluto_get_weekly_reports();
+
+/**
+-- start or restart task
+ALTER TASK udw_clientsolutions_cs.tsk_pluto_get_weekly_reports RESUME;
+
+-- stop task
+ALTER TASK udw_clientsolutions_cs.tsk_pluto_get_weekly_reports SUSPEND;
+
+-- show tasks
+SHOW TASKS;
+
+-- manually execute task
+EXECUTE TASK udw_clientsolutions_cs.tsk_pluto_get_weekly_reports;
+
+-- check status
+SELECT *
+  FROM TABLE(INFORMATION_SCHEMA.TASK_HISTORY())
+  ORDER BY SCHEDULED_TIME;
+**/
+
 
 
