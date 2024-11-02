@@ -150,7 +150,8 @@ def get_app_usage_from_cdw_to_udw(destination_table, cdw_config, udw_config, cou
                 SELECT 
                     DATEADD('month', -1, CURRENT_DATE)::TIMESTAMP AS reporting_start
                     ,(LEFT(DATEADD('day', -1, CURRENT_DATE), 10)::VARCHAR || ' 23:59:59')::TIMESTAMP AS reporting_end  
-                    ,DATE_TRUNC('quarter', CURRENT_DATE)::TIMESTAMP AS quarter_start  
+                    ,DATEADD('month', -1, CURRENT_DATE)::TIMESTAMP AS quarter_start  
+                    -- ,DATE_TRUNC('quarter', CURRENT_DATE)::TIMESTAMP AS quarter_start
             );
         '''
         
@@ -161,9 +162,9 @@ def get_app_usage_from_cdw_to_udw(destination_table, cdw_config, udw_config, cou
         #     DROP TABLE IF EXISTS variable_table;
         #     CREATE TEMP TABLE variable_table AS (
         #         SELECT 
-        #             '2024-10-15 00:00:00'::TIMESTAMP AS reporting_start
-        #             ,'2024-10-16 23:59:59'::TIMESTAMP AS reporting_end  
-        #             ,'2024-10-15 00:00:00'::TIMESTAMP AS quarter_start
+        #             '2023-11-01 00:00:00'::TIMESTAMP AS reporting_start
+        #             ,'2023-11-01 00:00:00'::TIMESTAMP AS quarter_start
+        #             ,'2024-04-30 23:59:59'::TIMESTAMP AS reporting_end  
         #     );
         # '''
 

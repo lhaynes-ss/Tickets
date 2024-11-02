@@ -211,9 +211,10 @@ def get_exposures_from_cdw_to_udw(sales_order_table, destination_table, cdw_conf
             DROP TABLE IF EXISTS variable_table;
             CREATE TEMP TABLE variable_table AS (
                 SELECT 
-                    DATEADD('month', -6, CURRENT_DATE)::TIMESTAMP AS reporting_start
+                    DATEADD('month', -1, CURRENT_DATE)::TIMESTAMP AS reporting_start
                     ,(LEFT(DATEADD('day', -1, CURRENT_DATE), 10)::VARCHAR || ' 23:59:59')::TIMESTAMP AS reporting_end  
-                    ,DATE_TRUNC('quarter', CURRENT_DATE)::TIMESTAMP AS quarter_start  
+                    ,DATEADD('month', -1, CURRENT_DATE)::TIMESTAMP AS quarter_start  
+                    -- ,DATE_TRUNC('quarter', CURRENT_DATE)::TIMESTAMP AS quarter_start
             );
         '''
 
