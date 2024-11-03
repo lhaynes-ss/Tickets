@@ -139,7 +139,7 @@ def get_app_usage_from_cdw_to_udw(destination_table, cdw_config, udw_config, cou
         
         
         # set dates in temp table as CDW does not have variables
-        # script updated to go back 6 months instead of x days on initial load, then 1 month going forward
+        # script updated to go back 6 months instead of x days on initial load, then 2 weeks going forward
         #---------------------------------------------------------------------------------
         #--------------
         # production
@@ -148,9 +148,9 @@ def get_app_usage_from_cdw_to_udw(destination_table, cdw_config, udw_config, cou
             DROP TABLE IF EXISTS variable_table;
             CREATE TEMP TABLE variable_table AS (
                 SELECT 
-                    DATEADD('month', -1, CURRENT_DATE)::TIMESTAMP AS reporting_start
+                    DATEADD('week', -2, CURRENT_DATE)::TIMESTAMP AS reporting_start
                     ,(LEFT(DATEADD('day', -1, CURRENT_DATE), 10)::VARCHAR || ' 23:59:59')::TIMESTAMP AS reporting_end  
-                    ,DATEADD('month', -1, CURRENT_DATE)::TIMESTAMP AS quarter_start  
+                    ,DATEADD('week', -2, CURRENT_DATE)::TIMESTAMP AS quarter_start  
                     -- ,DATE_TRUNC('quarter', CURRENT_DATE)::TIMESTAMP AS quarter_start
             );
         '''
