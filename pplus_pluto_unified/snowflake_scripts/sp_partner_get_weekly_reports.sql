@@ -1066,6 +1066,7 @@ BEGIN
 -- handle exception
 EXCEPTION
     WHEN OTHER THEN
+        -- Procedure xyz for partner failed. Error: (0, error message) || LOG: (message 1 => message 2 => message 3)
         SELECT udw_clientsolutions_cs.udf_submit_slack_notification_simple(
             slack_webhook_url => 'https://hooks.slack.com/triggers/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'
             ,date_string => :current_date::VARCHAR
