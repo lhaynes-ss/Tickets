@@ -17,7 +17,7 @@ USE SCHEMA PUBLIC;
 -- Every Monday at 2 AM UTC
 CREATE OR REPLACE TASK udw_clientsolutions_cs.tsk_update_paramount_creative_mapping
   WAREHOUSE = 'UDW_CLIENTSOLUTIONS_DEFAULT_WH_PROD_MEDIUM'
-  SCHEDULE = 'USING CRON  0 2 * * 1 UTC'
+  SCHEDULE = 'USING CRON  10 2 * * 1 UTC'
 AS 
   CALL udw_clientsolutions_cs.sp_update_custom_creative_mapping(
     sales_order_source_table => 'udw_clientsolutions_cs.paramount_operative_sales_orders'
@@ -111,7 +111,7 @@ USE SCHEMA PUBLIC;
 -- Every Monday at 1 AM UTC / 7 AM CST
 CREATE OR REPLACE TASK udw_clientsolutions_cs.tsk_paramount_get_weekly_reports
   WAREHOUSE = 'UDW_CLIENTSOLUTIONS_DEFAULT_WH_PROD_MEDIUM'
-  SCHEDULE = 'USING CRON  0 13 * * 1 UTC'
+  SCHEDULE = 'USING CRON  10 13 * * 1 UTC'
 AS 
   CALL udw_clientsolutions_cs.sp_paramount_get_weekly_reports();
 
