@@ -33,13 +33,14 @@ The following are settings to select for creating tasks in Windows Task Schedule
 # Schedule
 The table below give details for the tasks that need to be scheduled. Swap $ with the content partners name (e.g., $_file.txt would be paramount_plus_file.txt or pluto_file.txt)
 
-|Task|Task Type|File/Process|Frequency|Time|
+|Task|Task Type|File/Process|Frequency|Start Time|
 |--|--|--|--|--|
-|Update Mapping File|Snowflake Task|tsk_update_paramount_creative_mapping|Sunday|8 PM CST / Mon 2 AM UTC|
+|Update Mapping File|Snowflake Task|tsk_update_paramount_creative_mapping|Sunday|8:10 PM CST / Mon 2:10 AM UTC|
 |Update Mapping File|Snowflake Task|tsk_update_pluto_creative_mapping|Sunday|8 PM CST / Mon 2 AM UTC|
-|Import CDW Impressions|Local Task|$_report_exposures.py|Daily|11 PM CST|
-|Import App Usage|Local Task|$_report_app_usage.py|Daily|3 AM CST|
-|Generate Reports|Snowflake Task|tsk_paramount_get_weekly_reports|Monday|7 AM CST / Mon 1 PM UTC|
+|Import CDW Impressions|Local Task|$_report_exposures.py|Daily|11 PM CST*|
+|Import App Usage|Local Task|$_report_app_usage.py|Daily|3 AM CST*|
+|Generate Reports|Snowflake Task|tsk_paramount_get_weekly_reports|Monday|7:10 AM CST / Mon 1:10 PM UTC|
 |Generate Reports|Snowflake Task|tsk_pluto_get_weekly_reports|Monday|7 AM CST / Mon 1 PM UTC|
 
+\* The local Paramount tasks start times are delayed by 10 minutes
 
