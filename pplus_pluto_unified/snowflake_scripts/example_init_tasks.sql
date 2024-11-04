@@ -1,6 +1,24 @@
 /**
 https://www.utctime.net/utc-to-cst-converter
 https://crontab.guru/#0_2_*_*_1
+
+------------------------------
+See max time limit; Example:
+------------------------------
+-- Default: 3600000 (User task execution timeout in milliseconds) = 60 minutes
+SHOW PARAMETERS LIKE '%USER_TASK_TIMEOUT_MS%' IN TASK <task name>;
+
+Note: when tasks time out, it doesn't trigger slack exception notification.
+
+To change time limit 
+  1. SUSPEND the task if it is running
+  2. ALTER the USER_TASK_TIMEOUT_MS. Set it to 0 for maxt time allowed or specify a number using 
+     this converter:  https://my.homecampus.com.sg/Learn/Hours-to-Milliseconds-Converter
+  3. RESUME the task
+  4. SHOW PARAMETERS to verify the change took
+
+All commands are listed undeer each task.
+
 **/
 
 --===============================
@@ -27,11 +45,18 @@ AS
 );
 
 /**
+
+-- increase default time limit to 8 hours
+ALTER TASK udw_clientsolutions_cs.tsk_update_paramount_creative_mapping SET USER_TASK_TIMEOUT_MS = 28800000;
+
 -- start or restart task
 ALTER TASK udw_clientsolutions_cs.tsk_update_paramount_creative_mapping RESUME;
 
 -- stop task
 ALTER TASK udw_clientsolutions_cs.tsk_update_paramount_creative_mapping SUSPEND;
+
+-- check time limit
+SHOW PARAMETERS LIKE '%USER_TASK_TIMEOUT_MS%' IN TASK udw_clientsolutions_cs.tsk_update_paramount_creative_mapping;
 
 -- show tasks
 SHOW TASKS;
@@ -74,11 +99,18 @@ AS
 );
 
 /**
+
+-- increase default time limit to 8 hours
+ALTER TASK udw_clientsolutions_cs.tsk_update_pluto_creative_mapping SET USER_TASK_TIMEOUT_MS = 28800000;
+
 -- start or restart task
 ALTER TASK udw_clientsolutions_cs.tsk_update_pluto_creative_mapping RESUME;
 
 -- stop task
 ALTER TASK udw_clientsolutions_cs.tsk_update_pluto_creative_mapping SUSPEND;
+
+-- check time limit
+SHOW PARAMETERS LIKE '%USER_TASK_TIMEOUT_MS%' IN TASK udw_clientsolutions_cs.tsk_update_pluto_creative_mapping;
 
 -- show tasks
 SHOW TASKS;
@@ -116,11 +148,18 @@ AS
   CALL udw_clientsolutions_cs.sp_paramount_get_weekly_reports();
 
 /**
+
+-- increase default time limit to 8 hours
+ALTER TASK udw_clientsolutions_cs.tsk_paramount_get_weekly_reports SET USER_TASK_TIMEOUT_MS = 28800000;
+
 -- start or restart task
 ALTER TASK udw_clientsolutions_cs.tsk_paramount_get_weekly_reports RESUME;
 
 -- stop task
 ALTER TASK udw_clientsolutions_cs.tsk_paramount_get_weekly_reports SUSPEND;
+
+-- check time limit
+SHOW PARAMETERS LIKE '%USER_TASK_TIMEOUT_MS%' IN TASK udw_clientsolutions_cs.tsk_paramount_get_weekly_reports;
 
 -- show tasks
 SHOW TASKS;
@@ -158,11 +197,18 @@ AS
   CALL udw_clientsolutions_cs.sp_pluto_get_weekly_reports();
 
 /**
+
+-- increase default time limit to 8 hours
+ALTER TASK udw_clientsolutions_cs.tsk_pluto_get_weekly_reports SET USER_TASK_TIMEOUT_MS = 28800000;
+
 -- start or restart task
 ALTER TASK udw_clientsolutions_cs.tsk_pluto_get_weekly_reports RESUME;
 
 -- stop task
 ALTER TASK udw_clientsolutions_cs.tsk_pluto_get_weekly_reports SUSPEND;
+
+-- check time limit
+SHOW PARAMETERS LIKE '%USER_TASK_TIMEOUT_MS%' IN TASK udw_clientsolutions_cs.tsk_pluto_get_weekly_reports;
 
 -- show tasks
 SHOW TASKS;
