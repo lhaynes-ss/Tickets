@@ -44,3 +44,21 @@ The table below give details for the tasks that need to be scheduled. Swap $ wit
 
 \* The local Paramount tasks start times are delayed by 10 minutes
 
+Note: when tasks time out, it doesn't trigger slack exception notification. See [example_init_tasks](../snowflake_scripts/example_init_tasks.sql) for instructions to increase default time limit.
+
+## Validate that the reports ran 
+Assuming that there were no error notifications, there should be 22 reports total based on the region and countries for the scripts.
+```
+-- 10/21 - 10/27
+
+--1
+LIST @udw_marketing_analytics_reports.pluto_external_us/ PATTERN = '.*2024-10-21_2024-10-27.*';
+-- 1
+LIST @udw_marketing_analytics_reports.paramount_plus_external_us/ PATTERN = '.*2024-10-21_2024-10-27.*';
+-- 8
+LIST @udw_marketing_analytics_reports.paramount_plus_external_international/ PATTERN = '.*2024-10-21_2024-10-27.*';
+-- 12
+LIST @udw_marketing_analytics_reports.pluto_external_international/ PATTERN = '.*2024-10-21_2024-10-27.*';
+```
+
+Example for how to [download the files](../download%20files.sh.txt)
