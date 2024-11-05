@@ -1,4 +1,8 @@
-
+/**
+This shows how to reset the app usage table.
+This shouldn't be needed unless you are making changes to the columns
+and want to wipe the data and re=pull everything.
+**/
 
 -- connection settings
 USE ROLE UDW_CLIENTSOLUTIONS_DEFAULT_CONSUMER_ROLE_PROD;
@@ -19,6 +23,7 @@ SELECT COUNT(*)
 FROM udw_clientsolutions_cs.paramount_custom_app_usage 
 LIMIT 1000;
 
+/**
 
 -- reset pluto
 CREATE OR REPLACE TABLE udw_clientsolutions_cs.pluto_custom_app_usage (
@@ -43,4 +48,5 @@ CREATE OR REPLACE TABLE udw_clientsolutions_cs.paramount_custom_app_usage (
     ,date_imported      DATE
 );
 
+**/
 

@@ -99,6 +99,8 @@ BEGIN
     log_message := '';
 
     -- get an array of all of the keys from the regions object
+    -- for regions = { "a": "regions a", "b": "regions b", "c": "regions c"}
+    -- region_keys = ['a', 'b', 'c']
     region_keys := OBJECT_KEYS(:regions);
     
     -- loop through the keys array... (e.g., ['udw_na', 'cdw_eu', ...])
@@ -120,6 +122,9 @@ BEGIN
         -- specify cdw tables to use depending on region
         cdw_tables := '';
         
+        -- we will call a different stored procedure if region is
+        -- international. Also, international procedure requires two additional
+        -- key/value pairs.
         IF(:region_key <> 'udw_na') THEN 
             sp := 'sp_partner_get_cdw_weekly_reports';
 
@@ -130,7 +135,7 @@ BEGIN
             
         END IF;
 
-        -- query
+        -- build dynamic query
         get_reports_query := '
             CALL udw_clientsolutions_cs.' || :sp || '(
                 partner                     => ''' || :partner || '''
@@ -159,6 +164,7 @@ BEGIN
 
         -- RETURN :get_reports_query;              --> uncomment this line for testing
 
+        -- execute dynamic query
         EXECUTE IMMEDIATE :get_reports_query;   --> production
 
         -- log message (e.g., Region udw_na completed.)
@@ -174,6 +180,8 @@ BEGIN
 -- handle exception
 EXCEPTION
     WHEN OTHER THEN
+
+        -- Task x failed. Error: (0, error message) || LOG: (log message 1 => log message 2)
         SELECT udw_clientsolutions_cs.udf_submit_slack_notification_simple(
             slack_webhook_url => 'https://hooks.slack.com/triggers/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'
             ,date_string => :current_date::VARCHAR

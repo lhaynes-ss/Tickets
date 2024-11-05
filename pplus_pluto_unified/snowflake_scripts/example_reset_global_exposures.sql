@@ -13,7 +13,12 @@ FROM udw_clientsolutions_cs.pluto_custom_global_exposure
 LIMIT 1000
 ;
 
- 
+ /**
+This shows how to reset the exposures table.
+This shouldn't be needed unless you are making changes to the columns
+and want to wipe the data and re=pull everything.
+**/
+
  
 -- check paramount+ counts
 SELECT COUNT(*)  
@@ -21,6 +26,8 @@ FROM udw_clientsolutions_cs.paramount_custom_global_exposure
 LIMIT 1000
 ;
 
+
+/** 
 
 -- reset paramount+
 CREATE OR REPLACE TABLE udw_clientsolutions_cs.paramount_custom_global_exposure (
@@ -49,4 +56,5 @@ CREATE OR REPLACE TABLE udw_clientsolutions_cs.pluto_custom_global_exposure (
     ,date_imported          DATE
 );
 
+**/
 

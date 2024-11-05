@@ -957,7 +957,6 @@ BEGIN
             -- determine the number of partitions needed. At least 1
             file_partitions := (SELECT GREATEST(CEIL(COUNT(*)/:max_rows), 1) FROM output_table);
 
-
             -- create a dynamic query to push the output to appropriate file/bucket
             -- NOTE: COPY INTO has PARTITION BY command that would automatically split file up, but this would prepend "data_" to the file names which  
             -- would violate the naming convention requested, so we will have to do this manually
@@ -976,8 +975,10 @@ BEGIN
                 END IF;
 
 
+                -- e.g., "weekly/paramount_plus_eu_weekly_campaign_2024-10-21_2024-10-27_001.csv"
                 file_path   := :report_interval || '/' || :file_name_prefix || :country || '_' || :report_interval || '_campaign_' || :start_date || '_' || :end_date || '_' || :sequence_id || '.csv';
 
+                -- e.g., "@paramount_plus_external_us/weekly/paramount_plus_eu_weekly_campaign_2024-10-21_2024-10-27_001.csv"
                 output_file := output_stage || file_path;
 
 
@@ -1066,6 +1067,7 @@ BEGIN
 -- handle exception
 EXCEPTION
     WHEN OTHER THEN
+
         -- Procedure xyz for partner failed. Error: (0, error message) || LOG: (message 1 => message 2 => message 3)
         SELECT udw_clientsolutions_cs.udf_submit_slack_notification_simple(
             slack_webhook_url => 'https://hooks.slack.com/triggers/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'

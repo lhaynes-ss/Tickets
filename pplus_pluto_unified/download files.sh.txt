@@ -1,4 +1,6 @@
-# download files -- 10/21 - 10/27
+# ---------------------------------------------
+# Example: download files for 10/21 - 10/27
+# ---------------------------------------------
 
 aws --profile scop s3 cp --recursive s3://prod-samsung-dm-data-share-pluto/pluto-international/weekly/ beta/ --exclude "*" --include "*2024-10-21_2024-10-27*" 
 

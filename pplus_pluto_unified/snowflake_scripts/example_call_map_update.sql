@@ -1,3 +1,7 @@
+/**
+This shows how to call for a map update mnanually, but this process is
+auto-handled by a task. see "example_init_tasks.sql"
+**/
 
 -- connection settings
 USE ROLE UDW_CLIENTSOLUTIONS_DEFAULT_CONSUMER_ROLE_PROD;
