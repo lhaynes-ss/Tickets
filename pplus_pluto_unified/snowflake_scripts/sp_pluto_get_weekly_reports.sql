@@ -65,7 +65,7 @@ BEGIN
                                     'udw_na'        , 'US, CA'
                                     ,'cdw_eu'       , 'AT, DE, ES, FR, GB, IT'
                                     ,'cdw_nordics'  , 'DK, NO, SE'
-                                    ,'cdw_apac'     , 'AU'
+                                    -- ,'cdw_apac'     , 'AU'
                                     ,'cdw_sa'       , 'BR'
                                 );
     max_rows                    := 999999;
