@@ -26,7 +26,7 @@ Data Sources: UDW
 
 Data Schemas:
     - udw_clientsolutions_cs, udw_lib, salesforce, operativeone, trader, 
-      data_ad_xdevice, profile_tv, data_tv_smarthub, adbiz_data
+      trader, profile_tv, data_tv_smarthub, adbiz_data
 
  Template: Hulu - LiveRamp & App Pixel Attribution Report
  Wiki: https://adgear.atlassian.net/wiki/spaces/MAST/pages/19409273050/Hulu+-+LiveRamp+App+Pixel+Attribution+Report
@@ -204,7 +204,8 @@ CREATE TEMP TABLE campaign_meta AS (
             samsung_campaign_id,
             sales_order_id,
             sales_order_name
-        FROM (
+        FROM
+            (
             SELECT
                 CAST(replace(sf_opp.jira_id__c, 'VAO-', '') AS INT) AS vao,
                 sf_opp.samsung_campaign_id__c AS samsung_campaign_id,
@@ -213,7 +214,7 @@ CREATE TEMP TABLE campaign_meta AS (
                 ROW_NUMBER() OVER(PARTITION BY vao ORDER BY sf_opp.lastmodifieddate DESC) AS rn
             FROM SALESFORCE.OPPORTUNITY AS sf_opp
             WHERE vao IN (SELECT DISTINCT vao FROM vaos_table)
-        )
+            )
         WHERE rn = 1
     ),
 
@@ -224,17 +225,19 @@ CREATE TEMP TABLE campaign_meta AS (
             order_start_date,
             order_end_date,
             time_zone
-        FROM (
+        FROM
+            (
             SELECT
                 sales_order.sales_order_id,
                 sales_order.sales_order_name,
                 sales_order.order_start_date,
                 sales_order.order_end_date,
                 sales_order.time_zone,
-                ROW_NUMBER() OVER(PARTITION BY sales_order.sales_order_id ORDER BY sales_order.last_modified_on) AS rn
+                ROW_NUMBER() OVER(PARTITION BY sales_order.sales_order_id ORDER BY sales_order.last_modified_on DESC) AS rn
             FROM OPERATIVEONE.SALES_ORDER AS sales_order
-                JOIN vao_samsungCampaignID AS vao USING (sales_order_id)
-        ) AS foo
+            JOIN vao_samsungCampaignID AS vao
+                USING (sales_order_id)
+            ) AS foo
         WHERE foo.rn = 1
     ),
 
@@ -244,21 +247,35 @@ CREATE TEMP TABLE campaign_meta AS (
             sales_order_line_item_id,
             cmpgn.id AS campaign_id,
             cmpgn.name AS campaign_name,
+            flight_id, 
+            creative_id,
             rate_type,
             net_unit_cost,
             cmpgn.start_at_datetime::TIMESTAMP AS cmpgn_start_datetime_utc,
             cmpgn.end_at_datetime::TIMESTAMP AS cmpgn_end_datetime_utc
         FROM TRADER.CAMPAIGNS_LATEST AS cmpgn
-            JOIN (
-                SELECT DISTINCT
-                    cmpgn_att.campaign_id,
-                    cmpgn_att.rate_type,
-                    cmpgn_att.net_unit_cost,
-                    cmpgn_att.external_id AS sales_order_id,
-                    cmpgn_att.li_external_id AS sales_order_line_item_id
-                FROM TRADER.CAMPAIGN_OMS_ATTRS_LATEST AS cmpgn_att
-                    JOIN vao_samsungCampaignID ON vao_samsungCampaignID.sales_order_id = cmpgn_att.external_id
-            ) AS foo ON cmpgn.id = foo.campaign_id
+        JOIN
+            (
+            SELECT DISTINCT
+                cmpgn_att.campaign_id,
+                cmpgn_att.rate_type,
+                cmpgn_att.net_unit_cost,
+                cmpgn_att.io_external_id AS sales_order_id,
+                cmpgn_att.li_external_id AS sales_order_line_item_id
+            FROM TRADER.CAMPAIGN_OMS_ATTRS_LATEST AS cmpgn_att
+            JOIN vao_samsungCampaignID
+                ON vao_samsungCampaignID.sales_order_id = cmpgn_att.external_id
+            ) AS foo
+            ON cmpgn.id = foo.campaign_id
+        JOIN 
+            (
+            SELECT DISTINCT 
+                campaign_id,
+                flight_id, 
+                creative_id
+            FROM UDW_PROD.UDW_CLIENTSOLUTIONS_CS.CAMPAIGN_FLIGHT_CREATIVE
+            ) c
+            ON cmpgn.id = c.campaign_id
     ),
 
     flight AS (
@@ -269,27 +286,18 @@ CREATE TEMP TABLE campaign_meta AS (
             flight.start_at_datetime::TIMESTAMP AS flight_start_datetime_utc,
             flight.end_at_datetime::TIMESTAMP AS flight_end_datetime_utc
         FROM TRADER.FLIGHTS_LATEST AS flight
-            JOIN cmpgn USING (campaign_id)
-    ),
-
-    cmpgn_flight_creative AS (
-        SELECT DISTINCT
-            cmpgn.sales_order_id,
-            campaign_id,
-            flight_id,
-            creative_id
-        FROM DATA_AD_XDEVICE.FACT_DELIVERY_EVENT_WITHOUT_PII AS fact
-            JOIN cmpgn USING (campaign_id)
-        WHERE fact.udw_partition_datetime BETWEEN (SELECT MIN(cmpgn_start_datetime_utc) FROM cmpgn) AND (SELECT MAX(cmpgn_end_datetime_utc) FROM cmpgn)
+        JOIN cmpgn
+            USING (campaign_id)
     ),
 
     creative AS (
         SELECT DISTINCT 
-            cmpgn_flight_creative.sales_order_id,
+            cmpgn.sales_order_id,
             creative.id AS creative_id,
             creative.name AS creative_name
         FROM TRADER.CREATIVES_LATEST AS creative
-            JOIN cmpgn_flight_creative ON cmpgn_flight_creative.creative_id = creative.id
+        JOIN cmpgn
+            ON cmpgn.creative_id = creative.id
     ),
 
     lineItem AS (
@@ -306,40 +314,54 @@ CREATE TEMP TABLE campaign_meta AS (
                 lineItem.sales_order_line_item_name,
                 TIMESTAMP_NTZ_FROM_PARTS(lineItem.sales_order_line_item_start_date::date, lineItem.start_time::time) AS sales_order_line_item_start_datetime_utc,
                 TIMESTAMP_NTZ_FROM_PARTS(lineItem.sales_order_line_item_end_date::date, lineItem.end_time::time) AS sales_order_line_item_end_datetime_utc,
-                ROW_NUMBER() OVER(PARTITION BY lineItem.sales_order_line_item_id ORDER BY lineItem.last_modified_on) AS rn
+                ROW_NUMBER() OVER(PARTITION BY lineItem.sales_order_line_item_id ORDER BY lineItem.last_modified_on DESC) AS rn
             FROM OPERATIVEONE.SALES_ORDER_LINE_ITEMS AS lineItem
-                JOIN vao_samsungCampaignID AS vao USING (sales_order_id)
+            JOIN vao_samsungCampaignID AS vao
+                USING (sales_order_id)
         ) AS foo
         WHERE foo.rn = 1
     )
 
-
-    -- Main query  (Remember to edit the parts you want to keep in below as well!)
+    /******************************************************************************************
+    * Main query          *** Remember to edit the parts you want to keep in below as well!
+    ******************************************************************************************/
     SELECT DISTINCT
-        -- VAO info
-        'combined' as vao, -- vao_samsungCampaignID.vao,
+        /******************************
+        * VAO info
+        ******************************/
+        vao_samsungCampaignID.vao,
         vao_samsungCampaignID.samsung_campaign_id,
         vao_samsungCampaignID.sales_order_id,
         vao_samsungCampaignID.sales_order_name,
-        -- Sales Order info
+        /******************************
+        * Sales Order info
+        ******************************/
         salesOrder.order_start_date,
         salesOrder.order_end_date,
-        -- Campaign info
+        /******************************
+        * Campaign info
+        ******************************/
         cmpgn.campaign_id,
         cmpgn.campaign_name,
+        cmpgn.flight_id,
+        cmpgn.creative_id,
         cmpgn.rate_type,
         cmpgn.net_unit_cost,
         cmpgn.cmpgn_start_datetime_utc,
         cmpgn.cmpgn_end_datetime_utc,
-        -- Flight info
-        flight.flight_id,
+        /******************************
+        * Flight info
+        ******************************/
         flight.flight_name,
         flight.flight_start_datetime_utc,
         flight.flight_end_datetime_utc,
-        -- Creative info
-        creative.creative_id,
+        /******************************
+        * Creative info
+        ******************************/
         creative.creative_name,
-        -- Line Item info
+        /******************************
+        * Line Item info
+        ******************************/
         lineItem.sales_order_line_item_id,
         lineItem.sales_order_line_item_name,
         lineItem.sales_order_line_item_start_datetime_utc,
@@ -347,13 +369,13 @@ CREATE TEMP TABLE campaign_meta AS (
     FROM vao_samsungCampaignID
         JOIN salesOrder USING (sales_order_id)
         JOIN cmpgn USING (sales_order_id)
-        JOIN flight USING (sales_order_id)
-        JOIN cmpgn_flight_creative USING (sales_order_id)
-        JOIN creative USING (sales_order_id)
+        JOIN flight USING (sales_order_id, flight_id)
+        JOIN creative USING (sales_order_id, creative_id)
         JOIN lineItem USING (sales_order_id, sales_order_line_item_id)
-     WHERE 
+    WHERE 
         1 = 1
-        -- AND creative.creative_name LIKE '%OMITB%'    --> uncomment this line to filter report to specific creatives (e.g., contains 'OMITB' in name)
+        -- AND lineItem.sales_order_line_item_name LIKE '%OMITB%'   --> uncomment this line to filter report to specific lines (e.g., contains 'OMITB' in name)
+        -- AND creative.creative_name LIKE '%OMITB%'                --> uncomment this line to filter report to specific creatives (e.g., contains 'OMITB' in name)
 );
 
 SELECT * FROM campaign_meta LIMIT 1000;
@@ -403,14 +425,14 @@ SET campaign_end = (
  Samsung Universe (aka. superset) is a collection of Samsung TVs that can be found in any of following 3 data sources:
     - TV Hardware: profile_tv.fact_psid_hardware_without_pii
     - App Open: data_tv_smarthub.fact_app_opened_event_without_pii
-    - O&O Samsung Ads Campaign Delivery: data_ad_xdevice.fact_delivery_event_without_pii (for exchange_id = 6 and exchange_seller_id = 86) 
+    - O&O Samsung Ads Campaign Delivery: trader.log_delivery_raw_without_pii (for exchange_id = 6 and exchange_seller_id = 86) 
  
  Any data used for attribution reports needs to be intersected with Samsung Universe
  Reference: https://adgear.atlassian.net/wiki/spaces/MAST/pages/19673186934/M+E+Analytics+-+A+I+Custom+Report+Methodology
 ********************/
 -- qualifier: start date = start date + 30 days if device graph resolution mechanism is used
-SET report_start_date = TO_CHAR($campaign_start, 'YYYYMMDDHH');
-SET report_end_date = TO_CHAR($campaign_end, 'YYYYMMDDHH');
+SET report_start_date = $campaign_start;
+SET report_end_date = $campaign_end;
 SET country = $reporting_country;
 
 DROP TABLE IF EXISTS qualifier; 
@@ -424,15 +446,16 @@ CREATE TEMP TABLE qualifier AS (
 		END AS qualifier, 
 		CASE 
 			WHEN qualifier = 'Superset +30 days' 
-			THEN DATEADD(DAY, -30, TO_DATE(LEFT($REPORT_START_DATE,8),'YYYYMMDD'))::TIMESTAMP 
-			ELSE TO_TIMESTAMP($REPORT_START_DATE,'YYYYMMDDHH') 
+			THEN DATEADD(DAY, -30, $REPORT_START_DATE)::TIMESTAMP 
+			ELSE $REPORT_START_DATE 
 		END AS report_start_date
-	FROM DATA_AD_XDEVICE.FACT_DELIVERY_EVENT_WITHOUT_PII a
+	FROM trader.log_delivery_raw_without_pii a
 		JOIN campaign_meta b ON a.campaign_id = b.campaign_id
 	WHERE 
-		UDW_PARTITION_DATETIME BETWEEN TO_TIMESTAMP($REPORT_START_DATE,'YYYYMMDDHH') AND TO_TIMESTAMP($REPORT_END_DATE,'YYYYMMDDHH')
-		AND TYPE = 1
-		AND device_country = $COUNTRY
+		a.UDW_PARTITION_DATETIME BETWEEN $REPORT_START_DATE AND $REPORT_END_DATE
+		AND a.event = 'impression'
+		AND a.country = $COUNTRY
+        AND a.campaign_id IS NOT NULL
 );
 
 SET report_start_date_qual = (SELECT report_start_date FROM qualifier);
@@ -443,23 +466,23 @@ CREATE TEMP TABLE samsung_ue AS (
 	FROM PROFILE_TV.FACT_PSID_HARDWARE_WITHOUT_PII a
 		JOIN UDW_LIB.VIRTUAL_PSID_TIFA_MAPPING_V m ON a.PSID_PII_VIRTUAL_ID = m.vpsid
 	WHERE 
-		UDW_PARTITION_DATETIME BETWEEN $REPORT_START_DATE_QUAL AND TO_TIMESTAMP($REPORT_END_DATE,'YYYYMMDDHH')
+		UDW_PARTITION_DATETIME BETWEEN $REPORT_START_DATE_QUAL AND $REPORT_END_DATE
 		AND partition_country = $COUNTRY	
 	UNION
 	SELECT DISTINCT GET(SAMSUNG_TVIDS_PII_VIRTUAL_ID , 0) AS vtifa
-	FROM DATA_AD_XDEVICE.FACT_DELIVERY_EVENT_WITHOUT_PII 	
+	FROM trader.log_delivery_raw_without_pii 	
 	WHERE 
-		UDW_PARTITION_DATETIME BETWEEN $REPORT_START_DATE_QUAL AND TO_TIMESTAMP($REPORT_END_DATE,'YYYYMMDDHH')
-		AND TYPE = 1
+		UDW_PARTITION_DATETIME BETWEEN $REPORT_START_DATE_QUAL AND $REPORT_END_DATE
+		AND event = 'impression'
 		AND (dropped != TRUE OR  dropped IS NULL)
 		AND (EXCHANGE_ID = 6 OR EXCHANGE_SELLER_ID = 86)
-		AND device_country = $COUNTRY
+		AND country = $COUNTRY
 	UNION 
 	SELECT DISTINCT m.vtifa
 	FROM DATA_TV_SMARTHUB.FACT_APP_OPENED_EVENT_WITHOUT_PII a 
 		JOIN UDW_LIB.VIRTUAL_PSID_TIFA_MAPPING_V m ON a.PSID_PII_VIRTUAL_ID = m.vpsid
 	WHERE 
-		UDW_PARTITION_DATETIME BETWEEN $REPORT_START_DATE_QUAL AND TO_TIMESTAMP($REPORT_END_DATE,'YYYYMMDDHH')
+		UDW_PARTITION_DATETIME BETWEEN $REPORT_START_DATE_QUAL AND $REPORT_END_DATE
 		AND partition_country = $COUNTRY
 );
 
@@ -475,25 +498,23 @@ DROP TABLE IF EXISTS cd;
 CREATE TEMP TABLE cd AS (
 
     SELECT
-        fact.device_country AS country
-        ,GET(fact.samsung_tvids_pii_virtual_id, 0) AS vtifa
-        ,fact.event_time AS timing
+        ld.country
+        ,GET(ld.samsung_tvids_pii_virtual_id, 0) AS vtifa
+        ,FLOOR(PARSE_JSON(ld.timestamp))::INT::TIMESTAMP_NTZ AS timing
         ,cm.vao
-        ,cm.sales_order_line_item_id as line_item_id
-        ,cm.sales_order_line_item_name as line_item_name
+        ,cm.sales_order_line_item_id AS line_item_id
+        ,cm.sales_order_line_item_name AS line_item_name
         ,cm.creative_id
         ,cm.creative_name
         ,cm.flight_id
         ,cm.flight_name
         ,COUNT(*) AS imps
-    FROM data_ad_xdevice.fact_delivery_event_without_pii AS fact
+    FROM trader.log_delivery_raw_without_pii ld
         JOIN campaign_meta AS cm USING (campaign_id, flight_id, creative_id)
     WHERE 
-        udw_partition_datetime BETWEEN $campaign_start AND DATEADD($attribution_window_unit, $attribution_window_liveramp, $campaign_end)
-        AND fact.type IN (
-            1 -- impressions
-        )
-        AND fact.device_country = $reporting_country
+        ld.udw_partition_datetime BETWEEN $campaign_start AND DATEADD($attribution_window_unit, $attribution_window_liveramp, $campaign_end)
+        AND ld.event IN ('impression')
+        AND ld.country = $reporting_country
     GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 
 );
