@@ -1,0 +1,24 @@
+/******************
+Paramount+
+- BR and MX should be handled same as CA
+******************/
+-- example mapping files
+20241118_p_au.csv
+20241118_p_all.csv
+20241118_p_ca.csv
+20241118_p_us.csv
+
+-- copy to aws
+-- note: au files are in APAC bucket
+aws --profile scop s3 cp 20241118_p_au.csv s3://samsungads-share-amazon-in/analytics/custom/vaughn/paramount/
+aws --profile scop s3 cp 20241118_p_all.csv s3://samsung.ads.data.share.eu/analytics/custom/vaughn/paramount/
+aws --profile scop s3 cp 20241118_p_ca.csv s3://samsung.ads.data.share/analytics/custom/vaughn/paramount/
+aws --profile scop s3 cp 20241118_p_us.csv s3://samsung.ads.data.share/analytics/custom/vaughn/paramount/
+
+-- use in query
+s3://samsungads-share-amazon-in/analytics/custom/vaughn/paramount/20241118_p_au.csv
+s3://samsung.ads.data.share.eu/analytics/custom/vaughn/paramount/20241118_p_all.csv
+ @udw_clientsolutions_cs.samsung_ads_data_share/analytics/custom/vaughn/paramount/20241118_p_ca.csv
+ @udw_clientsolutions_cs.samsung_ads_data_share/analytics/custom/vaughn/paramount/20241118_p_us.csv
+
+

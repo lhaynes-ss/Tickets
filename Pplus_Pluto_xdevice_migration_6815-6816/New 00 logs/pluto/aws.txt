@@ -1,0 +1,24 @@
+/******************
+Pluto
+- BR and MX should be handled same as CA
+******************/
+-- example mapping files
+20241118_pluto_all.csv
+20241118_pluto_ca.csv
+20241118_pluto_us.csv
+
+-- copy to aws
+aws --profile scop s3 cp 20241118_pluto_all.csv s3://samsung.ads.data.share.eu/analytics/custom/vaughn/pluto/
+aws --profile scop s3 cp 20241118_pluto_ca.csv s3://samsung.ads.data.share/analytics/custom/vaughn/pluto/
+aws --profile scop s3 cp 20241118_pluto_us.csv s3://samsung.ads.data.share/analytics/custom/vaughn/pluto/
+aws --profile scop s3 cp 20241022_pluto_us.csv s3://samsung.ads.data.share/analytics/custom/vaughn/pluto/
+
+
+-- use in query
+s3://samsung.ads.data.share.eu/analytics/custom/vaughn/pluto/20241118_pluto_all.csv
+ @udw_clientsolutions_cs.samsung_ads_data_share/analytics/custom/vaughn/pluto/20241118_pluto_ca.csv
+ @udw_clientsolutions_cs.samsung_ads_data_share/analytics/custom/vaughn/pluto/20241118_pluto_us.csv
+
+
+
+
